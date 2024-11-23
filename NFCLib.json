@@ -1,0 +1,18 @@
+{
+    "fileName": "NFCLib.json",
+    "name": "NFCLib",
+    "version": "0.0.1",
+    "frcYear": "2025",
+    "uuid": "a0309018-a4e2-4460-a381-40d012d134a7",
+    "mavenUrls": [],
+    "jsonUrl": "https://github.com/lobstahbots/nfclib/releases/latest/download/NFCLib.json",
+    "javaDependencies": [
+        {
+            "groupId": "com.lobstahbots.nfclib",
+            "artifactId": "nfclib-java",
+            "version": "0.0.1"
+        }
+    ],
+    "jniDependencies": [],
+    "cppDependencies": []
+}
