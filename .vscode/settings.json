@@ -11,5 +11,6 @@
   "files.associations": {
     "*.html": "html",
     "cstddef": "cpp"
-  }
+  },
+  "java.format.settings.url": ".vscode/java-formatter.xml"
 }
