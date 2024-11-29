@@ -6,6 +6,11 @@ import java.util.Optional;
 import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.SPI;
 
+/**
+ * A class for controlling an RC522 RFID reader. See the datasheet at
+ * https://www.nxp.com/docs/en/data-sheet/MFRC522.pdf. Based off of
+ * https://github.com/miguelbalboa/rfid/.
+ */
 public class RC522 {
     /**
      * MFRC522 accepts up to 10MHz, set to 4MHz
@@ -656,5 +661,84 @@ public class RC522 {
     public RC522(SPI.Port chipSelectPort) {
         spi = new SPI(chipSelectPort);
         resetPowerDown = Optional.empty();
+    }
+
+    /**
+     * Writes a byte to the specified register in the RC522 chip. The interface is
+     * described in the datasheet section 8.1.2.
+     * 
+     * @param reg   The register to write to
+     * @param value The value to write
+     */
+    public void writeRegisterPCD(PCDRegister reg, byte value) {
+        spi.write(new byte[] { reg.value, value }, 2); // MSB == 0 is for writing; see datasheet section 8.1.2.3
+    }
+
+    /**
+     * Writes a number of bytes to the specified register in the RC522 chip. The
+     * interface is described in the datasheet section 8.1.2.
+     * 
+     * @param reg    The register to write to
+     * @param values The values to write
+     * @param size   The number of bytes to write from {@code values}
+     */
+    public void writeRegisterPCD(PCDRegister reg, ByteBuffer values, int size) {
+        spi.write(new byte[] { reg.value }, 1);
+        spi.write(values, size);
+    }
+
+    /**
+     * Reads a byte from the specified register in the RC522 chip. The interface is
+     * described in the datasheet section 8.1.2.
+     * 
+     * @param reg The register to read from
+     * @return One byte read from the register
+     */
+    public byte readRegisterPCD(PCDRegister reg) {
+        byte[] result = new byte[1];
+        spi.write(new byte[] { (byte) (0x80 | reg.value) }, 1); // MSB == 1 is for reading; see datasheet section 8.1.2.3
+        spi.transaction(new byte[] { 0 }, result, 1);
+        return result[0];
+    }
+
+    /**
+     * Reads a number of bytes from the specified register in the RC522 chip. The
+     * interface is described in the datasheet section
+     * 
+     * @param reg   The register to read from
+     * @param count The number of bytes to read
+     * @return A {@link ByteBuffer} containing {@code count} bytes read from the
+     *         chip
+     */
+    public ByteBuffer readRegisterPCD(PCDRegister reg, int count) {
+        if (count == 0) return ByteBuffer.allocate(0);
+
+        ByteBuffer address = ByteBuffer.allocate(count);
+        for (int i = 0; i < count - 1; i++)
+            address.put((byte) (0x80 | reg.value));
+        address.put((byte) 0);
+        ByteBuffer result = ByteBuffer.allocate(count);
+        spi.write(new byte[] { (byte) (0x80 | reg.value) }, 1);
+        spi.transaction(address, result, count);
+
+        return result;
+    }
+
+    /**
+     * Sets the bits given in a bitmask in the specified register.
+     * @param reg The register to update
+     * @param mask The bits to set
+     */
+    public void setRegisterBitmaskPCD(PCDRegister reg, byte mask) {
+        writeRegisterPCD(reg, (byte) (readRegisterPCD(reg) | mask));
+    }
+
+    /**
+     * Clears the bits given in a bitmask in the specified register.
+     * @param reg The register to update
+     * @param mask The bits to clear
+     */
+    public void clearRegisterBitmaskPCD(PCDRegister reg, byte mask) {
+        writeRegisterPCD(reg, (byte) (readRegisterPCD(reg) & ~mask));
     }
 }
