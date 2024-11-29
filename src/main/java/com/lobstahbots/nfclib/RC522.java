@@ -679,12 +679,11 @@ public class RC522 {
      * interface is described in the datasheet section 8.1.2.
      * 
      * @param reg    The register to write to
-     * @param values The values to write
-     * @param size   The number of bytes to write from {@code values}
+     * @param values The values to write; values.limit is how many bytes are written
      */
-    public void writeRegisterPCD(PCDRegister reg, ByteBuffer values, int size) {
+    public void writeRegisterPCD(PCDRegister reg, ByteBuffer values) {
         spi.write(new byte[] { reg.value }, 1);
-        spi.write(values, size);
+        spi.write(values, values.limit());
     }
 
     /**
