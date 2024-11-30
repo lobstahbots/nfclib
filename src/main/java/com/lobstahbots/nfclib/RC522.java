@@ -626,7 +626,7 @@ public class RC522 {
             byte sak) {}
 
     /**
-     * Used by {@link PICC_ReadCardSerial}.
+     * Used by {@link readCardSerial}.
      */
     public UID uid;
 
@@ -673,6 +673,17 @@ public class RC522 {
      */
     public void writeRegister(PCDRegister reg, byte value) {
         spi.write(new byte[] { reg.value, value }, 2); // MSB == 0 is for writing; see datasheet section 8.1.2.3
+    }
+
+    /**
+     * Writes a byte to the specified register in the RC522 chip. The interface is
+     * described in the datasheet section 8.1.2.
+     * 
+     * @param reg   The register to write to
+     * @param value The value to write, will be cast to byte
+     */
+    public void writeRegister(PCDRegister reg, int value) {
+        writeRegister(reg, (byte) value);
     }
 
     /**
@@ -740,7 +751,18 @@ public class RC522 {
      * @param mask The bits to set
      */
     public void setRegisterBitmask(PCDRegister reg, byte mask) {
-        writeRegister(reg, (byte) (readRegister(reg) | mask));
+        writeRegister(reg, readRegister(reg) | mask);
+    }
+
+
+    /**
+     * Sets the bits given in a bitmask in the specified register.
+     * 
+     * @param reg  The register to update
+     * @param mask The bits to set; cast to byte
+     */
+    public void setRegisterBitmask(PCDRegister reg, int mask) {
+        setRegisterBitmask(reg, (byte) mask);
     }
 
     /**
@@ -750,7 +772,17 @@ public class RC522 {
      * @param mask The bits to clear
      */
     public void clearRegisterBitmask(PCDRegister reg, byte mask) {
-        writeRegister(reg, (byte) (readRegister(reg) & ~mask));
+        writeRegister(reg, readRegister(reg) & ~mask);
+    }
+
+    /**
+     * Clears the bits given in a bitmask in the specified register.
+     * 
+     * @param reg  The register to update
+     * @param mask The bits to clear; cast to byte
+     */
+    public void clearRegisterBitmask(PCDRegister reg, int mask) {
+        clearRegisterBitmask(reg, (byte) mask);
     }
 
     /**
@@ -762,8 +794,8 @@ public class RC522 {
      */
     public Optional<ByteBuffer> calculateCRC(ByteBuffer data) {
         command(PCDCommand.PCD_Idle); // Stop any active command
-        writeRegister(PCDRegister.DivIrqReg, (byte) 0x04); // Clear the CRCIRq interrupt request bit
-        writeRegister(PCDRegister.FIFOLevelReg, (byte) 0x80); // FlushBuffer = 1, FIFO initialization
+        writeRegister(PCDRegister.DivIrqReg, 0x04); // Clear the CRCIRq interrupt request bit
+        writeRegister(PCDRegister.FIFOLevelReg, 0x80); // FlushBuffer = 1, FIFO initialization
         writeRegister(PCDRegister.FIFODataReg, data); // Write data to the FIFO
         command(PCDCommand.PCD_CalcCRC); // Start the calculation
 
@@ -784,8 +816,85 @@ public class RC522 {
                 return Optional.of(result.put(readRegister(PCDRegister.CRCResultRegL))
                         .put(readRegister(PCDRegister.CRCResultRegH)).flip());
             }
+            Timer.delay(0.0005); // check every 500 microseconds
         } while (Timer.getFPGATimestamp() < deadline);
 
         return Optional.empty();
+    }
+
+    /**
+     * Initializes the RC522 chip. If a reset and power down connection is provided,
+     * preforms a hard reset; otherwise, performs a soft reset.
+     */
+    public void init() {
+        boolean hardReset = false;
+
+        if (resetPowerDown.isPresent()) {
+            // Check if chip is in power down mode
+            if (!resetPowerDown.get().get()) {
+                resetPowerDown.get().set(false); // make sure we have a clean LOW state
+                Timer.delay(0.000002); // 8.8.1 Reset timing requirements says about 100ns. Let us be generous: 2μs
+                resetPowerDown.get().set(true); // Exit power down mode. This triggers a hard reset.
+                // Section 8.8.2 in the datasheet says the oscillator start-up time is the start up time of the crystal + 37.74μs. Let us be generous: 50ms.
+                Timer.delay(0.050);
+                hardReset = true;
+            }
+        }
+
+        if (!hardReset) reset();
+
+        // Reset baud rates
+        writeRegister(PCDRegister.TxModeReg, 0x00);
+        writeRegister(PCDRegister.RxModeReg, 0x00);
+        // Reset ModWidthReg
+        writeRegister(PCDRegister.ModWidthReg, 0x26);
+
+        /*
+         * When communicating with a PICC we need a timeout if something goes wrong.
+         * f_timer = 13.56 MHz / (2*TPreScaler+1) where TPreScaler =
+         * [TPrescaler_Hi:TPrescaler_Lo]. TPrescaler_Hi are the four low bits in
+         * TModeReg. TPrescaler_Lo is TPrescalerReg.
+         */
+        writeRegister(PCDRegister.TModeReg, 0x80); // TAuto=1; timer starts automatically at the end of the transmission in all communication modes at all speeds
+        writeRegister(PCDRegister.TPrescalerReg, 0xA9); // TPreScaler = TModeReg[3..0]:TPrescalerReg, ie 0x0A9 = 169 => f_timer=40kHz, ie a timer period of 25μs.
+        writeRegister(PCDRegister.TReloadRegH, 0x03); // Reload timer with 0x3E8 = 1000, ie 25ms before timeout.
+        writeRegister(PCDRegister.TReloadRegL, 0xE8);
+
+        writeRegister(PCDRegister.TxASKReg, 0x40); // Default 0x00. Force a 100 % ASK modulation independent of the ModGsPReg register setting
+        writeRegister(PCDRegister.ModeReg, 0x3D); // Default 0x3F. Set the preset value for the CRC coprocessor for the CalcCRC command to 0x6363 (ISO 14443-3 part 6.2.4)
+        antennaOn(); // Enable the antenna driver pins TX1 and TX2 (they were disabled by the reset)
+    }
+
+    /**
+     * Performs a soft reset of the RC522 chip and waits for it to be ready again.
+     */
+    public void reset() {
+        command(PCDCommand.PCD_SoftReset);
+        /*
+         * The datasheet does not mention how long the SoftReset command takes to
+         * complete. But the MFRC522 might have been in soft power-down mode (triggered
+         * by bit 4 of CommandReg) Section 8.8.2 in the datasheet says the oscillator
+         * start-up time is the start up time of the crystal + 37.74μs. Let us be
+         * generous: 50ms.
+         */
+        int count = 0;
+        do {
+            Timer.delay(0.050); // Wait for the PowerDown bit in CommandReg to be cleared, max 3 waits of 50ms
+        } while ((readRegister(PCDRegister.CommandReg) & (1 << 4)) > 0 && (++count) < 3);
+    }
+
+    /**
+     * Turns the antenna on by enabling pins TX1 and TX2. After a reset these pins
+     * are disabled.
+     */
+    public void antennaOn() {
+        setRegisterBitmask(PCDRegister.TxControlReg, 0x03);
+    }
+
+    /**
+     * Turns the antenna off by disabling pins TX1 and TX2.
+     */
+    public void antennaOff() {
+        clearRegisterBitmask(PCDRegister.TxControlReg, 0x03);
     }
 }
