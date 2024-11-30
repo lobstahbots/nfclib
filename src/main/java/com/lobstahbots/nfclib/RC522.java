@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.Timer;
 
 /**
  * A class for controlling an RC522 RFID reader. See the datasheet at
@@ -687,6 +688,15 @@ public class RC522 {
     }
 
     /**
+     * Sends a command.
+     * 
+     * @param command The command to send
+     */
+    public void command(PCDCommand command) {
+        writeRegister(PCDRegister.CommandReg, command.value);
+    }
+
+    /**
      * Reads a byte from the specified register in the RC522 chip. The interface is
      * described in the datasheet section 8.1.2.
      * 
@@ -720,12 +730,13 @@ public class RC522 {
         spi.write(new byte[] { (byte) (0x80 | reg.value) }, 1);
         spi.transaction(address, result, count);
 
-        return result;
+        return result.flip();
     }
 
     /**
      * Sets the bits given in a bitmask in the specified register.
-     * @param reg The register to update
+     * 
+     * @param reg  The register to update
      * @param mask The bits to set
      */
     public void setRegisterBitmask(PCDRegister reg, byte mask) {
@@ -734,10 +745,47 @@ public class RC522 {
 
     /**
      * Clears the bits given in a bitmask in the specified register.
-     * @param reg The register to update
+     * 
+     * @param reg  The register to update
      * @param mask The bits to clear
      */
     public void clearRegisterBitmask(PCDRegister reg, byte mask) {
         writeRegister(reg, (byte) (readRegister(reg) & ~mask));
+    }
+
+    /**
+     * Use the CRC coprocessor in the RC522 to calculate a CRC_A.
+     * 
+     * @param data The data to transfer to the FIFO for CRC calculation
+     * @return Optional containing the result, low byte first, if successful, or
+     *         empty if error (CRC calculation timeout after 90ms)
+     */
+    public Optional<ByteBuffer> calculateCRC(ByteBuffer data) {
+        command(PCDCommand.PCD_Idle); // Stop any active command
+        writeRegister(PCDRegister.DivIrqReg, (byte) 0x04); // Clear the CRCIRq interrupt request bit
+        writeRegister(PCDRegister.FIFOLevelReg, (byte) 0x80); // FlushBuffer = 1, FIFO initialization
+        writeRegister(PCDRegister.FIFODataReg, data); // Write data to the FIFO
+        command(PCDCommand.PCD_CalcCRC); // Start the calculation
+
+        ByteBuffer result = ByteBuffer.allocate(2);
+
+        /*
+         * Wait for the CRC calculation to complete. Check for the register to indicate
+         * that the CRC calculation is complete in a loop. If the calculation is not
+         * indicated as complete in ~90ms, then time out the operation.
+         */
+        final double deadline = Timer.getFPGATimestamp() + 0.089;
+
+        do {
+            // DivIrqReg[7..0] bits are: Set2 reserved reserved MfinActIRq reserved CRCIRq reserved reserved
+            byte n = readRegister(PCDRegister.DivIrqReg);
+            if ((n & 0x04) > 0) { // CRCIrq bit set - caulculation done
+                command(PCDCommand.PCD_Idle); // stop calculating CRC for new content in the FIFO
+                return Optional.of(result.put(readRegister(PCDRegister.CRCResultRegL))
+                        .put(readRegister(PCDRegister.CRCResultRegH)).flip());
+            }
+        } while (Timer.getFPGATimestamp() < deadline);
+
+        return Optional.empty();
     }
 }
