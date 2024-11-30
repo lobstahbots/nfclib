@@ -652,7 +652,7 @@ public class RC522 {
     /**
      * Create a new object for interfacing with an RC522 RFID module which isn't
      * connected to the reset and power down pin. In this case, only soft reset will
-     * be used in {@link PCDInit}.
+     * be used in {@link init}.
      * 
      * @param chipSelectPort {@link SPI.Port} that the RC522 chip select pin is
      *                       connected to.
@@ -670,7 +670,7 @@ public class RC522 {
      * @param reg   The register to write to
      * @param value The value to write
      */
-    public void writeRegisterPCD(PCDRegister reg, byte value) {
+    public void writeRegister(PCDRegister reg, byte value) {
         spi.write(new byte[] { reg.value, value }, 2); // MSB == 0 is for writing; see datasheet section 8.1.2.3
     }
 
@@ -681,7 +681,7 @@ public class RC522 {
      * @param reg    The register to write to
      * @param values The values to write; values.limit is how many bytes are written
      */
-    public void writeRegisterPCD(PCDRegister reg, ByteBuffer values) {
+    public void writeRegister(PCDRegister reg, ByteBuffer values) {
         spi.write(new byte[] { reg.value }, 1);
         spi.write(values, values.limit());
     }
@@ -693,7 +693,7 @@ public class RC522 {
      * @param reg The register to read from
      * @return One byte read from the register
      */
-    public byte readRegisterPCD(PCDRegister reg) {
+    public byte readRegister(PCDRegister reg) {
         byte[] result = new byte[1];
         spi.write(new byte[] { (byte) (0x80 | reg.value) }, 1); // MSB == 1 is for reading; see datasheet section 8.1.2.3
         spi.transaction(new byte[] { 0 }, result, 1);
@@ -709,7 +709,7 @@ public class RC522 {
      * @return A {@link ByteBuffer} containing {@code count} bytes read from the
      *         chip
      */
-    public ByteBuffer readRegisterPCD(PCDRegister reg, int count) {
+    public ByteBuffer readRegister(PCDRegister reg, int count) {
         if (count == 0) return ByteBuffer.allocate(0);
 
         ByteBuffer address = ByteBuffer.allocate(count);
@@ -728,8 +728,8 @@ public class RC522 {
      * @param reg The register to update
      * @param mask The bits to set
      */
-    public void setRegisterBitmaskPCD(PCDRegister reg, byte mask) {
-        writeRegisterPCD(reg, (byte) (readRegisterPCD(reg) | mask));
+    public void setRegisterBitmask(PCDRegister reg, byte mask) {
+        writeRegister(reg, (byte) (readRegister(reg) | mask));
     }
 
     /**
@@ -737,7 +737,7 @@ public class RC522 {
      * @param reg The register to update
      * @param mask The bits to clear
      */
-    public void clearRegisterBitmaskPCD(PCDRegister reg, byte mask) {
-        writeRegisterPCD(reg, (byte) (readRegisterPCD(reg) & ~mask));
+    public void clearRegisterBitmask(PCDRegister reg, byte mask) {
+        writeRegister(reg, (byte) (readRegister(reg) & ~mask));
     }
 }
