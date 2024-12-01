@@ -29,19 +29,19 @@ public class RC522 {
      * Philips Semiconductors; Preliminary Specification Revision 2.0 - 01 August
      * 2005; 16.1 self-test
      */
-    public static final ByteBuffer MFRC522_FIRMWARE_REFERENCE_V0_0;
+    public static final ByteBuffer RC522_FIRMWARE_REFERENCE_V0_0;
     /**
      * Version 1.0 (0x91)
      * <p>
      * NXP Semiconductors; Rev. 3.8 - 17 September 2014; 16.1.1 self-test
      */
-    public static final ByteBuffer MFRC522_FIRMWARE_REFERENCE_V1_0;
+    public static final ByteBuffer RC522_FIRMWARE_REFERENCE_V1_0;
     /**
      * Version 2.0 (0x92)
      * <p>
      * NXP Semiconductors; Rev 3.8 - 17 September 2014; 16.1.1. self-test
      */
-    public static final ByteBuffer MFRC522_FIRMWARE_REFERENCE_V2_0;
+    public static final ByteBuffer RC522_FIRMWARE_REFERENCE_V2_0;
     /**
      * Clone
      * <p>
@@ -49,33 +49,36 @@ public class RC522 {
      */
     public static final ByteBuffer FM17522_FIRMWARE_REFERENCE;
     static {
-        int[] MFRC522_FIRMWARE_REFERENCE_V0_0_ARRAY = { 0x00, 0x87, 0x98, 0x0f, 0x49, 0xFF, 0x07, 0x19, 0xBF, 0x22,
+        int[] RC522_FIRMWARE_REFERENCE_V0_0_ARRAY = { 0x00, 0x87, 0x98, 0x0f, 0x49, 0xFF, 0x07, 0x19, 0xBF, 0x22,
                 0x30, 0x49, 0x59, 0x63, 0xAD, 0xCA, 0x7F, 0xE3, 0x4E, 0x03, 0x5C, 0x4E, 0x49, 0x50, 0x47, 0x9A, 0x37,
                 0x61, 0xE7, 0xE2, 0xC6, 0x2E, 0x75, 0x5A, 0xED, 0x04, 0x3D, 0x02, 0x4B, 0x78, 0x32, 0xFF, 0x58, 0x3B,
                 0x7C, 0xE9, 0x00, 0x94, 0xB4, 0x4A, 0x59, 0x5B, 0xFD, 0xC9, 0x29, 0xDF, 0x35, 0x96, 0x98, 0x9E, 0x4F,
                 0x30, 0x32, 0x8D };
-        MFRC522_FIRMWARE_REFERENCE_V0_0 = ByteBuffer.allocate(MFRC522_FIRMWARE_REFERENCE_V0_0_ARRAY.length);
-        for (int val : MFRC522_FIRMWARE_REFERENCE_V0_0_ARRAY) {
-            MFRC522_FIRMWARE_REFERENCE_V0_0.put((byte) val);
+        RC522_FIRMWARE_REFERENCE_V0_0 = ByteBuffer.allocate(RC522_FIRMWARE_REFERENCE_V0_0_ARRAY.length);
+        for (int val : RC522_FIRMWARE_REFERENCE_V0_0_ARRAY) {
+            RC522_FIRMWARE_REFERENCE_V0_0.put((byte) val);
         }
-        int[] MFRC522_FIRMWARE_REFERENCE_V1_0_ARRAY = { 0x00, 0xC6, 0x37, 0xD5, 0x32, 0xB7, 0x57, 0x5C, 0xC2, 0xD8,
+        RC522_FIRMWARE_REFERENCE_V0_0.flip();
+        int[] RC522_FIRMWARE_REFERENCE_V1_0_ARRAY = { 0x00, 0xC6, 0x37, 0xD5, 0x32, 0xB7, 0x57, 0x5C, 0xC2, 0xD8,
                 0x7C, 0x4D, 0xD9, 0x70, 0xC7, 0x73, 0x10, 0xE6, 0xD2, 0xAA, 0x5E, 0xA1, 0x3E, 0x5A, 0x14, 0xAF, 0x30,
                 0x61, 0xC9, 0x70, 0xDB, 0x2E, 0x64, 0x22, 0x72, 0xB5, 0xBD, 0x65, 0xF4, 0xEC, 0x22, 0xBC, 0xD3, 0x72,
                 0x35, 0xCD, 0xAA, 0x41, 0x1F, 0xA7, 0xF3, 0x53, 0x14, 0xDE, 0x7E, 0x02, 0xD9, 0x0F, 0xB5, 0x5E, 0x25,
                 0x1D, 0x29, 0x79 };
-        MFRC522_FIRMWARE_REFERENCE_V1_0 = ByteBuffer.allocate(MFRC522_FIRMWARE_REFERENCE_V1_0_ARRAY.length);
-        for (int val : MFRC522_FIRMWARE_REFERENCE_V1_0_ARRAY) {
-            MFRC522_FIRMWARE_REFERENCE_V1_0.put((byte) val);
+        RC522_FIRMWARE_REFERENCE_V1_0 = ByteBuffer.allocate(RC522_FIRMWARE_REFERENCE_V1_0_ARRAY.length);
+        for (int val : RC522_FIRMWARE_REFERENCE_V1_0_ARRAY) {
+            RC522_FIRMWARE_REFERENCE_V1_0.put((byte) val);
         }
-        int[] MFRC522_FIRMWARE_REFERENCE_V2_0_ARRAY = { 0x00, 0xEB, 0x66, 0xBA, 0x57, 0xBF, 0x23, 0x95, 0xD0, 0xE3,
+        RC522_FIRMWARE_REFERENCE_V1_0.flip();
+        int[] RC522_FIRMWARE_REFERENCE_V2_0_ARRAY = { 0x00, 0xEB, 0x66, 0xBA, 0x57, 0xBF, 0x23, 0x95, 0xD0, 0xE3,
                 0x0D, 0x3D, 0x27, 0x89, 0x5C, 0xDE, 0x9D, 0x3B, 0xA7, 0x00, 0x21, 0x5B, 0x89, 0x82, 0x51, 0x3A, 0xEB,
                 0x02, 0x0C, 0xA5, 0x00, 0x49, 0x7C, 0x84, 0x4D, 0xB3, 0xCC, 0xD2, 0x1B, 0x81, 0x5D, 0x48, 0x76, 0xD5,
                 0x71, 0x61, 0x21, 0xA9, 0x86, 0x96, 0x83, 0x38, 0xCF, 0x9D, 0x5B, 0x6D, 0xDC, 0x15, 0xBA, 0x3E, 0x7D,
                 0x95, 0x3B, 0x2F };
-        MFRC522_FIRMWARE_REFERENCE_V2_0 = ByteBuffer.allocate(MFRC522_FIRMWARE_REFERENCE_V2_0_ARRAY.length);
-        for (int val : MFRC522_FIRMWARE_REFERENCE_V2_0_ARRAY) {
-            MFRC522_FIRMWARE_REFERENCE_V2_0.put((byte) val);
+        RC522_FIRMWARE_REFERENCE_V2_0 = ByteBuffer.allocate(RC522_FIRMWARE_REFERENCE_V2_0_ARRAY.length);
+        for (int val : RC522_FIRMWARE_REFERENCE_V2_0_ARRAY) {
+            RC522_FIRMWARE_REFERENCE_V2_0.put((byte) val);
         }
+        RC522_FIRMWARE_REFERENCE_V2_0.flip();
         int[] FM17522_FIRMWARE_REFERENCE_ARRAY = { 0x00, 0xD6, 0x78, 0x8C, 0xE2, 0xAA, 0x0C, 0x18, 0x2A, 0xB8, 0x7A,
                 0x7F, 0xD3, 0x6A, 0xCF, 0x0B, 0xB1, 0x37, 0x63, 0x4B, 0x69, 0xAE, 0x91, 0xC7, 0xC3, 0x97, 0xAE, 0x77,
                 0xF4, 0x37, 0xD7, 0x9B, 0x7C, 0xF5, 0x3C, 0x11, 0x8F, 0x15, 0xC3, 0xD7, 0xC1, 0x5B, 0x00, 0x2A, 0xD0,
@@ -85,6 +88,7 @@ public class RC522 {
         for (int val : FM17522_FIRMWARE_REFERENCE_ARRAY) {
             FM17522_FIRMWARE_REFERENCE.put((byte) val);
         }
+        FM17522_FIRMWARE_REFERENCE.flip();
     }
 
     /**
@@ -754,7 +758,6 @@ public class RC522 {
         writeRegister(reg, readRegister(reg) | mask);
     }
 
-
     /**
      * Sets the bits given in a bitmask in the specified register.
      * 
@@ -896,5 +899,101 @@ public class RC522 {
      */
     public void antennaOff() {
         clearRegisterBitmask(PCDRegister.TxControlReg, 0x03);
+    }
+
+    /**
+     * Get the current RC522 Receiver Gain (RxGain[2:0]) value. See 9.3.3.6 / table
+     * 98 in the datasheet. NOTE: Return value scrubbed with (0x07<<4)=01110000b as
+     * RCFfgReg may use reserved bits.
+     * 
+     * @return Value of the RxGain, scrubbed to the 3 bits used.
+     */
+    public byte getAntennaGain() {
+        return (byte) (readRegister(PCDRegister.RFCfgReg) & (0x07 << 4));
+    }
+
+    /**
+     * Set the RC522 Receiver Gain (RxGain) to value specified by given mask. See
+     * 9.3.3.6 / table 98 in the datasheet. NOTE: Given mask is scrubbed with
+     * (0x07<<4)=01110000b as RCFfgReg may use reserved bits.
+     * 
+     * @param mask The mask to use; bits 7, 6, and 5 represent the antenna gain
+     */
+    public void setAntennaGain(byte mask) {
+        if (getAntennaGain() != mask) {
+            clearRegisterBitmask(PCDRegister.RFCfgReg, 0x07 << 4);
+            setRegisterBitmask(PCDRegister.RFCfgReg, mask & (0x07 << 4));
+        }
+    }
+
+    /**
+     * Performs a self-test of the RC522. See 16.1.1 in the datasheet.
+     * 
+     * @return Whether or not the test passed. Or false if no firmware reference is
+     *         available.
+     */
+    public boolean performSelfTest() {
+        // This follows directly the steps outlined in 16.1.1
+        // 1. Perform a soft reset.
+        reset();
+
+        // 2. Clear the internal buffer by writing 25 null bytes
+        ByteBuffer zeros = ByteBuffer.allocate(25);
+        for (int i = 0; i < 25; i++)
+            zeros.put((byte) 0x00);
+        zeros.flip();
+        writeRegister(PCDRegister.FIFOLevelReg, 0x80); // flush the FIFO buffer
+        writeRegister(PCDRegister.FIFODataReg, zeros); // write 25 null bytes to FIFO
+        command(PCDCommand.PCD_Mem); // transfer to internal buffer
+
+        // 3. Enable self-test
+        writeRegister(PCDRegister.AutoTestReg, 0x09);
+
+        // 4. Write a null byte to FIFO buffer
+        writeRegister(PCDRegister.FIFODataReg, 0x00);
+
+        // 5. Start self-test by issuing the CalcCRC command
+        command(PCDCommand.PCD_CalcCRC);
+
+        // 6. Wait for self-test to complete
+        for (int i = 0; i < 0xFF; i++) {
+            /*
+             * The datasheet does not specify exact completion condition except that FIFO
+             * buffer should contain 64 bytes. While selftest is initiated by CalcCRC
+             * command it behaves differently from normal CRC computation, so one can't
+             * reliably use DivIrqReg to check for completion. It is reported that some
+             * devices does not trigger CRCIRq flag during selftest.
+             */
+            if (readRegister(PCDRegister.FIFOLevelReg) >= 64) break;
+        }
+        command(PCDCommand.PCD_Idle);
+
+        // 7. Read out result 64 bytes from the FIFO buffer.
+        ByteBuffer result = readRegister(PCDRegister.FIFODataReg, 64);
+
+        // Auto self-test done. Reset AutoTestReg to 0, required for normal operation.
+        writeRegister(PCDRegister.AutoTestReg, 0x00);
+
+        // Determine firmware version (see section 9.3.4.8 in datasheet)
+        byte version = readRegister(PCDRegister.VersionReg);
+
+        final ByteBuffer reference = switch (version) {
+            case (byte) 0x88 -> FM17522_FIRMWARE_REFERENCE;
+            case (byte) 0x90 -> RC522_FIRMWARE_REFERENCE_V0_0;
+            case (byte) 0x91 -> RC522_FIRMWARE_REFERENCE_V1_0;
+            case (byte) 0x92 -> RC522_FIRMWARE_REFERENCE_V2_0;
+            default -> ByteBuffer.allocate(0); // unknown version, abort test
+        };
+        if (reference.capacity() == 0) return false;
+
+        if (!reference.equals(result)) return false;
+
+        /*
+         * 8. Perform a re-init, because PCD does not work after test. Reset does not
+         * work as expected. "Auto self-test done" does not work as expected.
+         */
+        init();
+
+        return true;
     }
 }
