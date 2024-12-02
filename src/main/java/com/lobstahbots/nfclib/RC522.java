@@ -999,4 +999,29 @@ public class RC522 {
 
         return true;
     }
+
+    /**
+     * Puts the RC522 chip into soft power down mode.
+     * 
+     * @implNote Calling any other function that uses CommandReg will disable soft
+     *           power down mode. For more details about power control, refer to the
+     *           datasheet - page 33 (8.6)
+     */
+    public void softPowerDown() {
+        setRegisterBitmask(PCDRegister.CommandReg, 0x1 << 4); // Set PowerDown bit (bit 4) to 1
+    }
+
+    /**
+     * Wakes the RC522 chip up from soft power up mode. Waits for power-up to
+     * complete or for 500ms to pass.
+     */
+    public void softPowerUp() {
+        clearRegisterBitmask(PCDRegister.CommandReg, 0x1 << 4); // Set PowerDown bit (bit 4) to 0
+        // wait until PowerDown bit is cleared (this indicates end of wake up procedure) 
+        final double timeout = Timer.getFPGATimestamp() + 0.500; // Wait 500 ms
+        while (Timer.getFPGATimestamp() <= timeout) {
+            if ((readRegister(PCDRegister.CommandReg) & (1 << 4)) == 0) break;
+            Timer.delay(0.001); // Check every 1ms
+        }
+    }
 }
